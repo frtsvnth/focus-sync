@@ -1,0 +1,590 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Фокус Синк — Генератор повестки</title>
+  <meta name="description" content="Генератор красивых названий для повестки командного синка" />
+  <link href="https://api.fontshare.com/v2/css?f[]=satoshi@300,400,500,700&f[]=cabinet-grotesk@400,500,700,800&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --font-d:'Cabinet Grotesk','Helvetica Neue',sans-serif;
+  --font-b:'Satoshi','Inter',sans-serif;
+  --text-xs:clamp(.75rem,.7rem + .25vw,.875rem);
+  --text-sm:clamp(.875rem,.8rem + .35vw,1rem);
+  --text-base:clamp(1rem,.95rem + .25vw,1.125rem);
+  --text-lg:clamp(1.125rem,1rem + .75vw,1.5rem);
+  --text-xl:clamp(1.5rem,1.2rem + 1.25vw,2.25rem);
+  --s1:.25rem;--s2:.5rem;--s3:.75rem;--s4:1rem;--s5:1.25rem;--s6:1.5rem;--s8:2rem;--s10:2.5rem;--s12:3rem;
+  --r-sm:.375rem;--r-md:.5rem;--r-lg:.75rem;--r-xl:1rem;--r-2xl:1.5rem;--r-full:9999px;
+  --tr:200ms cubic-bezier(.16,1,.3,1);
+}
+[data-theme="dark"],:root{
+  --bg:#0d0c0b;--sf:#131210;--sf2:#191714;--sf3:#201e1a;
+  --br:rgba(255,255,255,.07);--br2:rgba(255,255,255,.13);
+  --tx:#e8e5e0;--txm:#8a8680;--txf:#4a4845;
+  --ac:#e8a940;--acd:rgba(232,169,64,.12);
+  --md:#d14f6e;--mdd:rgba(209,79,110,.12);
+  --ok:#5aa86c;--okd:rgba(90,168,108,.12);
+  --sh-s:0 1px 3px rgba(0,0,0,.4);--sh-m:0 4px 16px rgba(0,0,0,.5);--sh-l:0 16px 48px rgba(0,0,0,.6);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{
+  min-height:100dvh;font-family:var(--font-b);font-size:var(--text-base);
+  color:var(--tx);background:var(--bg);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  overflow-x:hidden;padding:var(--s6) var(--s4);
+}
+button{cursor:pointer;font-family:inherit}
+::selection{background:var(--acd);color:var(--tx)}
+:focus-visible{outline:2px solid var(--ac);outline-offset:3px;border-radius:var(--r-sm)}
+.amb{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.amb::before{content:'';position:absolute;width:700px;height:700px;top:-250px;left:50%;transform:translateX(-50%);background:radial-gradient(circle,rgba(232,169,64,.055) 0%,transparent 68%);animation:ap 9s ease-in-out infinite}
+.amb::after{content:'';position:absolute;width:500px;height:500px;bottom:-150px;right:-150px;background:radial-gradient(circle,rgba(209,79,110,.04) 0%,transparent 68%);animation:ap 13s ease-in-out infinite reverse}
+@keyframes ap{0%,100%{transform:translateX(-50%) scale(1);opacity:.6}50%{transform:translateX(-50%) scale(1.12);opacity:1}}
+.wrap{position:relative;z-index:1;width:100%;max-width:660px;display:flex;flex-direction:column;gap:var(--s6)}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:var(--s4)}
+.logo{display:flex;align-items:center;gap:var(--s3)}
+.logo-t{font-family:var(--font-d);font-size:var(--text-lg);font-weight:800;letter-spacing:-.02em}
+.logo-t em{font-style:normal;background:linear-gradient(135deg,var(--ac),#f0c060);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.btn-key{display:inline-flex;align-items:center;gap:var(--s2);padding:var(--s2) var(--s4);border-radius:var(--r-full);border:1px solid rgba(90,168,108,.25);background:var(--okd);color:var(--ok);font-size:var(--text-xs);font-weight:600;font-family:var(--font-b);transition:all var(--tr);white-space:nowrap}
+.btn-key.off{border-color:var(--br);background:transparent;color:var(--txf)}
+.btn-key .key-dot{width:6px;height:6px;border-radius:50%;background:currentColor}
+.card{background:var(--sf);border:1px solid var(--br);border-radius:var(--r-2xl);padding:var(--s8);box-shadow:var(--sh-l);position:relative;overflow:hidden}
+.card::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.018) 0%,transparent 55%);pointer-events:none}
+.d-bar{display:flex;flex-direction:column;gap:var(--s3)}
+.d-tabs{display:flex;gap:var(--s2);flex-wrap:nowrap;align-items:center}
+.d-tab{display:flex;align-items:center;gap:var(--s1);padding:var(--s2) var(--s3);border-radius:var(--r-full);border:1px solid var(--br);background:transparent;color:var(--txm);font-size:var(--text-xs);font-weight:500;transition:all var(--tr)}
+.d-tab:hover{border-color:var(--br2);color:var(--tx);background:var(--sf2)}
+.d-tab.on{background:var(--acd);border-color:rgba(232,169,64,.3);color:var(--ac)}
+.d-dot{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.7}
+.d-cust{padding:var(--s2) var(--s3);border-radius:var(--r-full);border:1px dashed var(--br);background:transparent;color:var(--txf);font-size:var(--text-xs);font-family:var(--font-b);transition:all var(--tr);white-space:nowrap}
+.d-cust:hover{border-color:var(--br2);color:var(--txm)}
+.cust-row{display:none;align-items:center;gap:var(--s3)}
+.cust-row.show{display:flex}
+.cust-row input[type=date]{flex:1;padding:var(--s2) var(--s4);border-radius:var(--r-full);border:1px solid var(--br);background:var(--sf2);color:var(--tx);font-size:var(--text-sm);font-family:var(--font-b);outline:none;transition:border-color var(--tr);color-scheme:dark}
+.cust-row input[type=date]:focus{border-color:rgba(232,169,64,.4)}
+.btn-go{padding:var(--s2) var(--s5);border-radius:var(--r-full);border:1px solid rgba(232,169,64,.25);background:var(--acd);color:var(--ac);font-size:var(--text-sm);font-weight:600;transition:all var(--tr)}
+.btn-go:hover{background:rgba(232,169,64,.2)}
+.ldr{display:flex;flex-direction:column;align-items:center;gap:var(--s5);padding:var(--s10) 0}
+.ldr-ring{width:52px;height:52px;border-radius:50%;border:2px solid var(--sf3);border-top-color:var(--ac);animation:spin .9s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.ldr-dots{display:flex;gap:var(--s2);align-items:center}
+.ldr-dots span{width:8px;height:8px;border-radius:50%;background:var(--ac);animation:db 1.4s ease-in-out infinite}
+.ldr-dots span:nth-child(2){animation-delay:.2s;opacity:.65}
+.ldr-dots span:nth-child(3){animation-delay:.4s;opacity:.35}
+@keyframes db{0%,80%,100%{transform:scale(.55);opacity:.35}40%{transform:scale(1);opacity:1}}
+.ldr-title{font-size:var(--text-sm);color:var(--txm);font-weight:500;letter-spacing:.06em;text-transform:uppercase}
+.ldr-step{font-size:var(--text-xs);color:var(--txf);min-height:1.3em;text-align:center}
+.res{display:flex;flex-direction:column;gap:var(--s4)}
+.res-lbl{font-size:var(--text-xs);color:var(--txf);text-transform:uppercase;letter-spacing:.1em;font-weight:600}
+.res-box{background:var(--sf2);border:1px solid var(--br);border-radius:var(--r-xl);padding:var(--s8) var(--s12) var(--s8) var(--s6);font-family:var(--font-d);font-size:clamp(1.3rem,1.1rem + 1.6vw,2.2rem);font-weight:700;line-height:1.35;color:var(--tx);letter-spacing:-.01em;min-height:112px;display:flex;align-items:center;word-break:break-word;position:relative;overflow:hidden;transition:background .4s,border-color .4s}
+.res-box.mad{background:var(--mdd);border-color:rgba(209,79,110,.2)}
+.res-box::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--ac),transparent);opacity:0;transition:opacity .4s}
+.res-box.filled::after{opacity:1}
+.res-box.mad::after{background:linear-gradient(90deg,transparent,var(--md),transparent)}
+.btn-cp-inline{position:absolute;right:var(--s4);top:50%;transform:translateY(-50%);display:flex;align-items:center;justify-content:center;width:44px;height:44px;border-radius:var(--r-full);border:1px solid var(--br);background:var(--sf3);color:var(--txm);cursor:pointer;transition:all var(--tr);flex-shrink:0}
+.btn-cp-inline:hover{background:var(--acd);border-color:rgba(232,169,64,.3);color:var(--ac);transform:translateY(calc(-50% - 1px))}
+.btn-cp-inline:active{transform:translateY(-50%)}
+.btn-cp-inline.ok{background:var(--okd);border-color:rgba(90,168,108,.25);color:var(--ok)}
+.btn-cp-inline svg{pointer-events:none}
+.cursor{display:inline-block;width:2px;height:.9em;background:var(--ac);margin-left:2px;animation:cb .8s step-end infinite;vertical-align:middle}
+.res-text{flex:1;padding-right:var(--s12);word-break:break-word}
+@keyframes cb{0%,100%{opacity:1}50%{opacity:0}}
+.divider{height:1px;background:var(--br);margin:var(--s1) 0}
+.acts{display:flex;gap:var(--s2);flex-wrap:nowrap;align-items:center;justify-content:center}
+.btn{display:inline-flex;align-items:center;gap:var(--s1);padding:var(--s2) var(--s3);border-radius:var(--r-full);border:1px solid var(--br);font-family:var(--font-b);font-size:var(--text-xs);font-weight:600;transition:all var(--tr);background:transparent;color:var(--txm);white-space:nowrap}
+.btn:hover{color:var(--tx);background:var(--sf3);border-color:var(--br2);transform:translateY(-1px);box-shadow:var(--sh-s)}
+.btn:active{transform:translateY(0)}
+.btn:disabled{opacity:.3;cursor:not-allowed;transform:none!important;box-shadow:none!important}
+.btn-cp{background:var(--acd);border-color:rgba(232,169,64,.25);color:var(--ac)}
+.btn-cp:hover{background:rgba(232,169,64,.2);border-color:rgba(232,169,64,.4);color:var(--ac)}
+.btn-cp.ok{background:var(--okd);border-color:rgba(90,168,108,.3);color:var(--ok)}
+.btn-mad{background:var(--mdd);border-color:rgba(209,79,110,.25);color:var(--md)}
+.btn-mad:hover{background:rgba(209,79,110,.2);border-color:rgba(209,79,110,.4);color:var(--md)}
+.btn-regen svg{transition:transform .5s cubic-bezier(.16,1,.3,1)}
+.btn-regen:hover svg{transform:rotate(180deg)}
+.lim-row{display:flex;align-items:center;gap:var(--s3);flex-wrap:wrap;justify-content:center}
+.lim-badge{display:inline-flex;align-items:center;gap:var(--s2);padding:var(--s1) var(--s3);border-radius:var(--r-full);font-size:var(--text-xs);font-weight:600;background:rgba(255,255,255,.04);border:1px solid var(--br);color:var(--txf);transition:all var(--tr)}
+.lim-badge.on{background:var(--okd);border-color:rgba(90,168,108,.25);color:var(--ok)}
+.lim-badge .dot{width:5px;height:5px;border-radius:50%;background:currentColor}
+.unlock-link{background:none;border:none;padding:0;font-size:var(--text-xs);color:var(--txf);text-decoration:underline;text-underline-offset:2px;cursor:pointer;transition:color var(--tr)}
+.unlock-link:hover{color:var(--txm)}
+.overlay{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.78);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:var(--s4);opacity:0;pointer-events:none;transition:opacity .25s}
+.overlay.show{opacity:1;pointer-events:all}
+.modal{background:var(--sf);border:1px solid var(--br2);border-radius:var(--r-2xl);padding:var(--s8);max-width:340px;width:100%;box-shadow:var(--sh-l);display:flex;flex-direction:column;gap:var(--s5);transform:scale(.95);transition:transform .3s cubic-bezier(.16,1,.3,1)}
+.overlay.show .modal{transform:scale(1)}
+.modal-title{font-family:var(--font-d);font-size:var(--text-lg);font-weight:700;text-align:center}
+.modal-sub{font-size:var(--text-sm);color:var(--txm);text-align:center;line-height:1.55}
+.pin-inputs{display:flex;gap:var(--s3);justify-content:center}
+.pin-d{width:54px;height:62px;border-radius:var(--r-lg);border:1px solid var(--br);background:var(--sf2);color:var(--tx);font-size:var(--text-xl);font-family:var(--font-d);font-weight:700;text-align:center;outline:none;transition:all var(--tr);-webkit-appearance:none}
+.pin-d:focus{border-color:rgba(232,169,64,.5);box-shadow:0 0 0 3px var(--acd)}
+.pin-d.err{border-color:rgba(209,79,110,.5);animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}20%,60%{transform:translateX(-6px)}40%,80%{transform:translateX(6px)}}
+.modal-acts{display:flex;gap:var(--s3)}
+.btn-cancel{flex:1;padding:var(--s3);border-radius:var(--r-full);border:1px solid var(--br);background:transparent;color:var(--txm);font-size:var(--text-sm);font-weight:600;font-family:var(--font-b);transition:all var(--tr)}
+.btn-cancel:hover{color:var(--tx);background:var(--sf2)}
+.btn-ok{flex:1;padding:var(--s3);border-radius:var(--r-full);border:1px solid rgba(232,169,64,.25);background:var(--acd);color:var(--ac);font-size:var(--text-sm);font-weight:600;font-family:var(--font-b);transition:all var(--tr)}
+.btn-ok:hover{background:rgba(232,169,64,.2)}
+.footer{display:flex;flex-direction:column;align-items:center;gap:var(--s3)}
+.footer-t{font-size:var(--text-xs);color:var(--txf);text-align:center}
+.toast{position:fixed;bottom:var(--s6);left:50%;transform:translateX(-50%) translateY(120%);background:var(--sf2);border:1px solid var(--br2);border-radius:var(--r-full);padding:var(--s3) var(--s6);font-size:var(--text-sm);font-weight:600;color:var(--tx);box-shadow:var(--sh-m);z-index:200;transition:transform .4s cubic-bezier(.16,1,.3,1);white-space:nowrap;max-width:90vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast.suc{color:var(--ok);border-color:rgba(90,168,108,.3)}
+.toast.err{color:var(--md);border-color:rgba(209,79,110,.3)}
+.fade-in{animation:fi .55s cubic-bezier(.16,1,.3,1) both}
+@keyframes fi{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:480px){
+  .card{padding:var(--s5)}
+  .acts{gap:var(--s1);flex-wrap:wrap}
+  .btn,.d-tab,.d-cust{padding:var(--s1) var(--s2);font-size:var(--text-xs)}
+  .res-box{font-size:clamp(1.05rem,4vw,1.55rem);padding:var(--s4);padding-right:52px}
+  .btn-cp-inline{width:40px;height:40px}
+  .modal{padding:var(--s6)}
+}
+  </style>
+</head>
+<body>
+<div class="amb"></div>
+
+<!-- PIN Modal -->
+<div class="overlay" id="pinOverlay" role="dialog" aria-label="Пин-код">
+  <div class="modal">
+    <div class="modal-title">🔐 Секретный режим</div>
+    <div class="modal-sub">Введи пин-код для бесконечной<br>перегенерации на сегодня</div>
+    <div class="pin-inputs">
+      <input class="pin-d" type="password" maxlength="1" inputmode="numeric" id="p0" autocomplete="off"/>
+      <input class="pin-d" type="password" maxlength="1" inputmode="numeric" id="p1" autocomplete="off"/>
+      <input class="pin-d" type="password" maxlength="1" inputmode="numeric" id="p2" autocomplete="off"/>
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" id="pinCancel">Отмена</button>
+      <button class="btn-ok" id="pinSubmit">Войти</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="wrap fade-in">
+  <div class="hdr">
+    <div class="logo">
+      <svg width="38" height="38" viewBox="0 0 38 38" fill="none" aria-label="Синк логотип">
+        <rect width="38" height="38" rx="11" fill="rgba(232,169,64,.11)"/>
+        <path d="M11 15h16M11 19h13M11 23h9" stroke="#e8a940" stroke-width="2.2" stroke-linecap="round"/>
+        <circle cx="28.5" cy="23" r="5" fill="rgba(232,169,64,.13)" stroke="#e8a940" stroke-width="1.6"/>
+        <path d="M27 23l1.1 1.1 2.2-2.2" stroke="#e8a940" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div class="logo-t"><em>Фокус</em> Синк</div>
+    </div>
+    <button class="btn-key off" id="btnKey">
+      <span class="key-dot"></span> AI
+    </button>
+  </div>
+
+  <div class="card">
+
+    <div class="ldr" id="ldrWrap">
+      <div class="ldr-ring"></div>
+      <div class="ldr-dots"><span></span><span></span><span></span></div>
+      <div class="ldr-title" id="ldrTitle">Генерирую повестку</div>
+      <div class="ldr-step" id="ldrStep">Ищу праздники...</div>
+    </div>
+
+    <div class="res" id="resWrap" style="display:none">
+      <div class="res-lbl" id="resLbl">Повестка на завтра</div>
+      <div class="res-box" id="resBox">
+        <span class="res-text" id="resText"></span>
+        <button class="btn-cp-inline" id="btnCp" onclick="doCopy()" title="Скопировать">
+           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+        </button>
+      </div>
+      <div class="divider"></div>
+      <div class="d-bar">
+        <div class="acts">
+          <button class="d-tab" id="tToday" onclick="selDate('today')"><span class="d-dot"></span>Сегодня</button>
+          <button class="d-tab on" id="tTomorrow" onclick="selDate('tomorrow')"><span class="d-dot"></span>Завтра</button>
+          <button class="d-cust" onclick="toggleCust()">📅 Другой</button>
+          <button class="btn btn-mad" id="btnMad" onclick="doMad()">🎲 Сделать дичь</button>
+          <button class="btn btn-regen" id="btnRegen" onclick="doRegen()">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M1 4v6h6M23 20v-6h-6"/><path d="M20.49 9A9 9 0 005.64 5.64L1 10M23 14l-4.64 4.36A9 9 0 013.51 15"/></svg>
+            Ещё раз
+          </button>
+        </div>
+        <div class="cust-row" id="custRow">
+          <input type="date" id="custDate"/>
+          <button class="btn-go" onclick="applyCust()">Вперёд →</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="lim-row">
+      <div class="lim-badge" id="limBadge"><span class="dot"></span><span id="limTx">Лимит: 0/3</span></div>
+      <button class="unlock-link" onclick="openPinModal()">разблокировать</button>
+    </div>
+    <div class="footer-t">Праздники · GigaChat API · ☕</div>
+  </div>
+</div>
+
+<script>
+/* ── CONFIG ── */
+// ⚠️ Замени на URL своего Cloudflare Worker после деплоя
+const PROXY_URL = 'https://focus-sync.dmitriy-yukhin.workers.dev';
+const MODEL     = 'GigaChat';
+
+/* ── STATE ── */
+const S = { genCount:0, madUsed:false, unlocked:false, isMad:false, loading:false, date:null };
+
+const _today = (()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })();
+const _tmrw  = (()=>{ const d=new Date(_today); d.setDate(d.getDate()+1); return d; })();
+S.date = new Date(_tmrw);
+
+/* ── UTILS ── */
+const fmt  = d => d.toISOString().slice(0,10);
+const fmtRU= d => d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
+const $    = id => document.getElementById(id);
+
+function dateLabel(d){
+  if(fmt(d)===fmt(_today)) return 'на сегодня';
+  if(fmt(d)===fmt(_tmrw))  return 'на завтра';
+  return 'на '+d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'});
+}
+
+/* ── HOLIDAYS DB ── */
+const FH = {
+  '01-01':['🎆 Новый год','🥂 Первый рабочий день после Нового года'],
+  '01-07':['⛪ Рождество Христово'],
+  '01-11':['🙏 Международный день «Спасибо»'],
+  '01-13':['🌙 Старый Новый год — второй шанс'],
+  '01-14':['🤗 День объятий'],
+  '01-19':['💧 Крещение Господне'],
+  '01-25':['👩‍🎓 Татьянин день — день студентов'],
+  '02-02':['🐿️ День сурка — как и каждый понедельник'],
+  '02-08':['🔬 День российской науки'],
+  '02-13':['📻 Всемирный день радио'],
+  '02-14':['❤️ День всех влюблённых'],
+  '02-17':['🍕 День пиццы'],
+  '02-21':['🌍 Международный день родного языка'],
+  '02-23':['🎖️ День защитника Отечества'],
+  '03-01':['🐱 Всемирный день кошек'],
+  '03-08':['💐 Международный женский день'],
+  '03-14':['🥧 День числа Пи (3.14)'],
+  '03-20':['🌸 Международный день счастья','🌑 Весеннее равноденствие'],
+  '03-21':['🌱 Всемирный день лесов'],
+  '03-22':['💧 Всемирный день воды'],
+  '03-27':['🎭 Всемирный день театра'],
+  '04-01':['🃏 День смеха — ни один баг не признан'],
+  '04-07':['🏥 Всемирный день здоровья'],
+  '04-12':['🚀 День космонавтики'],
+  '04-22':['🌍 День Земли'],
+  '04-23':['📚 Всемирный день книги'],
+  '05-01':['🌷 День весны и труда'],
+  '05-03':['☀️ Всемирный день солнца'],
+  '05-04':['⚡ Звёздные войны: Да пребудет с тобой Сила'],
+  '05-09':['🎗️ День Победы'],
+  '05-15':['👪 Международный день семьи'],
+  '05-17':['📡 Всемирный день телекоммуникаций'],
+  '05-25':['🏄 День полотенца — не паникуй'],
+  '05-31':['🚭 Всемирный день без табака'],
+  '06-01':['👶 День защиты детей','🍦 Международный день мороженого'],
+  '06-05':['🌿 Всемирный день окружающей среды'],
+  '06-08':['🌊 Всемирный день океанов'],
+  '06-12':['🇷🇺 День России'],
+  '06-21':['🌞 Летнее солнцестояние — самый длинный день года'],
+  '07-01':['😸 День кошек в России'],
+  '07-08':['💑 День семьи, любви и верности'],
+  '07-11':['🌐 Всемирный день народонаселения'],
+  '07-17':['😄 Всемирный день эмодзи 😊'],
+  '07-22':['🥧 День числа Пи (22/7) — аппроксимированного'],
+  '07-30':['🤝 Международный день дружбы'],
+  '08-01':['🍺 Международный день пива'],
+  '08-08':['🐱 Международный день кошки'],
+  '08-12':['👦 Международный день молодёжи'],
+  '08-13':['🖐️ Международный день левшей'],
+  '08-22':['😀 Международный день смайлика'],
+  '09-01':['📓 День знаний'],
+  '09-08':['📖 Международный день грамотности'],
+  '09-13':['🧑‍💻 День программиста'],
+  '09-21':['🕊️ Международный день мира'],
+  '10-01':['🎵 Международный день музыки'],
+  '10-04':['🐾 Всемирный день животных'],
+  '10-05':['👩‍🏫 Всемирный день учителя'],
+  '10-10':['💚 Всемирный день психического здоровья'],
+  '10-16':['🍞 Всемирный день хлеба'],
+  '10-31':['🎃 Хэллоуин — баги в продакшне страшнее'],
+  '11-04':['🇷🇺 День народного единства'],
+  '11-11':['⏰ 11.11 — время загадывать желания'],
+  '11-13':['🌍 Всемирный день добра'],
+  '12-09':['⛸️ День героев Отечества'],
+  '12-10':['🕊️ День прав человека'],
+  '12-25':['🎄 Рождество (католическое)'],
+  '12-31':['🥂 Канун Нового года — последний день в офисе'],
+};
+
+const QUIRKY = [
+  '🦄 День веры в единорогов','☕ День третьей чашки кофе',
+  '🐢 Международный день «всё успеем»','🧠 День синхронизации мозгового штурма',
+  '📎 День скрепки — решателя всех проблем','🛸 День когда НЛО точно не прилетит',
+  '🦥 Всемирный день ленивца — мы его чтим','🎯 День точного попадания в дедлайн',
+  '🌊 День потока — когда наконец не отвлекают','🔔 День выключить уведомления на час',
+  '🎪 День внезапной продуктивности','🌺 День когда всё пойдёт по плану',
+  '🎲 День случайного открытия','🍀 День незапланированного успеха',
+  '📡 День «проверь, работает ли Wi-Fi»','🤝 День рукопожатия через видеосвязь',
+  '🏆 День когда Sprint наконец закрыт','🌙 День продуктивного молчания в переговорке',
+  '🎸 День незаконченного плейлиста','🦋 День нового начала (снова)',
+  '🍄 День внезапных инсайтов','🔮 День когда баг исчез сам',
+  '🐉 День победы над техдолгом','🧩 День «наконец собрали пазл»',
+];
+
+function getBuiltin(d){
+  const k=String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  return FH[k]||[];
+}
+function getQuirky(d){
+  const seed = d.getFullYear()*10000 + (d.getMonth()+1)*100 + d.getDate();
+  return QUIRKY[seed % QUIRKY.length];
+}
+
+async function fetchNager(d){
+  try{
+    const r=await fetch(`https://date.nager.at/api/v3/PublicHolidays/${d.getFullYear()}/RU`,
+      {signal:AbortSignal.timeout(5000)});
+    if(!r.ok) return [];
+    const all=await r.json();
+    const ds=fmt(d);
+    return all.filter(h=>h.date===ds).map(h=>h.localName||h.name);
+  }catch{return[];}
+}
+
+async function allHolidays(d){
+  const [nager,builtin]=await Promise.all([fetchNager(d),Promise.resolve(getBuiltin(d))]);
+  const set=[...new Set([...nager,...builtin])];
+  if(set.length===0) set.push(getQuirky(d));
+  const q=getQuirky(d);
+  if(!set.includes(q)) set.push(q);
+  return set;
+}
+
+/* ── AI ── */
+async function callAI(prompt){
+  const r=await fetch(PROXY_URL,{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify({model:MODEL,messages:[{role:'user',content:prompt}],max_tokens:120,temperature:0.92})
+  });
+  if(!r.ok){
+    const e=await r.json().catch(()=>({}));
+    throw new Error(e.error?.message||'HTTP '+r.status);
+  }
+  const data=await r.json();
+  return data.choices?.[0]?.message?.content?.trim()||'';
+}
+
+/* ── GENERATE NORMAL ── */
+async function generate(d, force=false){
+  if(S.loading) return;
+  if(!force && !S.unlocked && S.genCount >= 3){ showToast('⏳ Лимит — введи пин для разблокировки','err'); return; }
+  S.loading=true; S.isMad=false;
+  showLoader('Генерирую повестку');
+  try{
+    setStep('Ищу праздники...');
+    const holidays=await allHolidays(d);
+    setStep('Выбираю самый интересный...');
+    const ds=fmtRU(d);
+    const list=holidays.slice(0,14).join('\n• ');
+    const prompt=`Ты генератор названий для повестки командного синка.
+Ответ — СТРОГО ОДНА строка в формате: 📆 ${ds} <Название праздника или темы>
+Никаких кавычек, пояснений, лишних символов — только эта строка.
+
+Список праздников и тем на ${ds}:
+• ${list}
+
+Выбери из списка одно — самое интересное, необычное или смешное.
+Используй эмодзи из списка (не добавляй новые).
+Пример правильного ответа: 📆 ${ds} День числа Пи и бесконечных задач`;
+    let res = await callAI(prompt);
+    if(!res || !res.includes(ds)){
+      const idx=Math.floor(Math.random()*holidays.length);
+      res='📆 '+ds+' '+holidays[idx];
+    }
+    if(!force) S.genCount++;
+    setKeyOk();
+    showResult(res,false);
+    updateLim();
+  }catch(e){
+    const hs=getBuiltin(d);
+    const fb=hs.length?hs[Math.floor(Math.random()*hs.length)]:getQuirky(d);
+    if(!force) S.genCount++;
+    showResult('📆 '+fmtRU(d)+' '+fb,false);
+    updateLim();
+    showToast('⚡ AI недоступен — локальный список','err');
+  }finally{ S.loading=false; }
+}
+
+/* ── MAD ── */
+function getMadPrompt(ds){
+  const variants=[
+    `Придумай ОДНО максимально дикое, абсурдное и смешное название для повестки командного синка.
+Ответ — СТРОГО ОДНА строка: 📆 ${ds} <дикое название>
+Не более 10 слов после даты. Без кавычек, пояснений. Только эта строка.
+Пример: 📆 ${ds} Срочный консилиум по поводу пропавшего дедлайна`,
+    `Придумай название повестки синка в стиле НЛО-заговора или абсурдного корпоративного указа.
+Ответ — СТРОГО ОДНА строка: 📆 ${ds} <название>
+Без пояснений, только строка.`,
+    `Придумай название синка как будто это фильм ужасов про офисный бэклог.
+Ответ — СТРОГО ОДНА строка: 📆 ${ds} <название>
+С подходящим эмодзи, коротко, страшно-смешно.`,
+  ];
+  return variants[Math.floor(Math.random()*variants.length)];
+}
+
+const MAD_FB=[
+  '🛸 Внеплановый синк по случаю приземления НЛО в переговорке',
+  '🦑 Ежедневный ритуал вызова Кракена продуктивности',
+  '🎪 Боевой брифинг перед сражением с бэклогом',
+  '🔮 Синхронизация хаотических энергий команды',
+  '🐉 Утренняя присяга на верность спринту',
+  '🧙 Созыв волшебного совета по борьбе с дедлайнами',
+  '🍄 Грибной сбор мнений перед штурмом задач',
+];
+
+async function doMad(){
+  if(S.loading) return;
+  if(!S.unlocked && S.madUsed){ showToast('🎲 Дичь уже была — завтра ещё раз','err'); return; }
+  S.loading=true; S.isMad=true;
+  showLoader('🎲 Готовлю дичь...');
+  try{
+    const ds=fmtRU(S.date);
+    let res = await callAI(getMadPrompt(ds));
+    if(!res || !res.includes(ds)){
+      const fb=MAD_FB[Math.floor(Math.random()*MAD_FB.length)];
+      res='📆 '+ds+' '+fb;
+    }
+    setKeyOk();
+    S.madUsed=true;
+    showResult(res,true);
+    updateLim();
+  }catch(e){
+    const fb=MAD_FB[Math.floor(Math.random()*MAD_FB.length)];
+    S.madUsed=true;
+    showResult('📆 '+fmtRU(S.date)+' '+fb,true);
+    updateLim();
+  }finally{ S.loading=false; }
+}
+
+/* ── REGEN ── */
+function doRegen(){
+  if(!S.unlocked && S.genCount >= 3 && !S.isMad){ openPinModal(); return; }
+  if(S.isMad) doMad(); else generate(S.date,true);
+}
+
+/* ── DATE SELECT ── */
+function selDate(which){
+  $('custRow').classList.remove('show');
+  document.querySelectorAll('.d-tab').forEach(t=>t.classList.remove('on'));
+  S.date = which==='today' ? new Date(_today) : new Date(_tmrw);
+  $(which==='today'?'tToday':'tTomorrow').classList.add('on');
+  S.genCount=0;
+  generate(S.date);
+}
+function toggleCust(){
+  const row=$('custRow'); row.classList.toggle('show');
+  if(row.classList.contains('show')){ $('custDate').min=fmt(_today); $('custDate').value=fmt(_tmrw); $('custDate').focus(); }
+}
+function applyCust(){
+  const v=$('custDate').value; if(!v) return;
+  S.date=new Date(v+'T00:00:00');
+  $('custRow').classList.remove('show');
+  document.querySelectorAll('.d-tab').forEach(t=>t.classList.remove('on'));
+  S.genCount=0; generate(S.date);
+}
+
+/* ── UI ── */
+function showLoader(label='Генерирую повестку'){
+  $('ldrWrap').style.display='flex'; $('resWrap').style.display='none';
+  $('ldrTitle').textContent=label; $('ldrStep').textContent='';
+}
+function setStep(t){ $('ldrStep').textContent=t; }
+function showResult(text,mad=false){
+  $('ldrWrap').style.display='none'; $('resWrap').style.display='flex';
+  const box=$('resBox');
+  box.className='res-box'+(mad?' mad':'');
+  const txt=$('resText');
+  txt.innerHTML='';
+  const cur=document.createElement('span'); cur.className='cursor'; txt.appendChild(cur);
+  const chars=[...text]; let i=0;
+  function tw(){ if(i<chars.length){ txt.insertBefore(document.createTextNode(chars[i]),cur); i++; setTimeout(tw,24+Math.random()*14); } else { cur.remove(); box.classList.add('filled'); } }
+  setTimeout(tw,100);
+  $('resLbl').textContent = mad ? '🎲 Дичь дня' : 'Повестка '+dateLabel(S.date);
+}
+function updateLim(){
+  const b=$('limBadge'),t=$('limTx');
+  if(S.unlocked){ b.className='lim-badge on'; t.textContent='∞ Разблокировано'; }
+  else{ b.className='lim-badge'; t.textContent='Лимит: '+S.genCount+'/3 на сегодня'; }
+  $('btnMad').disabled=S.madUsed&&!S.unlocked;
+}
+
+/* ── COPY ── */
+async function doCopy(){
+  const text=$('resText').textContent.replace(/[\u200B-\u200D\uFEFF]/g,'').trim();
+  if(!text) return;
+  try{
+    await navigator.clipboard.writeText('* '+text+' *');
+    const b=$('btnCp');
+    b.className='btn-cp-inline ok';
+    b.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+    showToast('✓ Скопировано!','suc');
+    setTimeout(()=>{ b.className='btn-cp-inline'; b.innerHTML='<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>'; },2000);
+  }catch{ showToast('Не удалось скопировать','err'); }
+}
+
+function setKeyOk(){
+  S._keyOk=true;
+  const k=$('btnKey');
+  k.className='btn-key';
+  k.innerHTML='<span class="key-dot"></span> Ключ ✓';
+}
+
+/* ── TOAST ── */
+let _tt;
+function showToast(msg,type=''){
+  const t=$('toast'); t.textContent=msg; t.className='toast show'+(type?' '+type:'');
+  clearTimeout(_tt); _tt=setTimeout(()=>t.className='toast',3000);
+}
+
+/* ── PIN ── */
+const PIN='112';
+function openPinModal(){ clearPin(); $('pinOverlay').classList.add('show'); setTimeout(()=>$('p0').focus(),300); }
+function closePinModal(){ $('pinOverlay').classList.remove('show'); }
+function clearPin(){ ['p0','p1','p2'].forEach(id=>{ $(id).value=''; $(id).classList.remove('err'); }); }
+function checkPin(){
+  const v=['p0','p1','p2'].map(id=>$(id).value).join('');
+  if(v===PIN){
+    S.unlocked=true; closePinModal(); updateLim();
+    showToast('🔓 Разблокировано — перегенерируй сколько угодно!','suc');
+    $('btnMad').disabled=false;
+  }else{
+    ['p0','p1','p2'].forEach(id=>{ $(id).classList.add('err'); setTimeout(()=>$(id).classList.remove('err'),500); });
+    clearPin(); $('p0').focus(); showToast('❌ Неверный пин-код','err');
+  }
+}
+['p0','p1','p2'].forEach((id,i)=>{
+  $(id).addEventListener('input',function(){ if(this.value.length===1){ if(i<2)$('p'+(i+1)).focus(); else checkPin(); } });
+  $(id).addEventListener('keydown',function(e){ if(e.key==='Backspace'&&!this.value&&i>0)$('p'+(i-1)).focus(); });
+});
+$('pinCancel').onclick=closePinModal;
+$('pinSubmit').onclick=checkPin;
+$('pinOverlay').addEventListener('click',e=>{ if(e.target===$('pinOverlay'))closePinModal(); });
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePinModal(); });
+
+/* ── INIT ── */
+window.addEventListener('DOMContentLoaded',()=>{
+  $('custDate').value=fmt(_tmrw);
+  generate(S.date);
+});
+</script>
+</body>
+</html>
