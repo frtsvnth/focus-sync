@@ -235,11 +235,26 @@ const PROXY_URL = 'https://focus-sync.dmitriy-yukhin.workers.dev';
 const MODEL     = 'deepseek/deepseek-v4-flash';
 
 /* ── STATE ── */
+const LK = ()=>'focus-sync-'+fmt(_today);
+function loadState(){
+  try{
+    const raw=localStorage.getItem(LK());
+    if(!raw) return;
+    const st=JSON.parse(raw);
+    if(st.d===fmt(_today)){ S.genCount=st.c||0; S.madUsed=!!st.m; S.unlocked=!!st.u; }
+  }catch(e){}
+}
+function saveState(){
+  try{
+    localStorage.setItem(LK(),JSON.stringify({d:fmt(_today),c:S.genCount,m:S.madUsed,u:S.unlocked}));
+  }catch(e){}
+}
 const S = { genCount:0, madUsed:false, unlocked:false, isMad:false, loading:false, date:null };
 
 const _today = (()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })();
 const _tmrw  = (()=>{ const d=new Date(_today); d.setDate(d.getDate()+1); return d; })();
 S.date = new Date(_tmrw);
+loadState();
 
 /* ── UTILS ── */
 const fmt  = d => d.toISOString().slice(0,10);
@@ -410,6 +425,7 @@ async function generate(d, force=false){
       res='📆 '+ds+' '+holidays[idx];
     }
     if(!force) S.genCount++;
+    saveState();
     setKeyOk();
     showResult(res,false);
     updateLim();
@@ -417,6 +433,7 @@ async function generate(d, force=false){
     const hs=getBuiltin(d);
     const fb=hs.length?hs[Math.floor(Math.random()*hs.length)]:getQuirky(d);
     if(!force) S.genCount++;
+    saveState();
     showResult('📆 '+fmtRU(d)+' '+fb,false);
     updateLim();
     showToast('⚡ AI недоступен — локальный список','err');
@@ -464,11 +481,13 @@ async function doMad(){
     }
     setKeyOk();
     S.madUsed=true;
+    saveState();
     showResult(res,true);
     updateLim();
   }catch(e){
     const fb=MAD_FB[Math.floor(Math.random()*MAD_FB.length)];
     S.madUsed=true;
+    saveState();
     showResult('📆 '+fmtRU(S.date)+' '+fb,true);
     updateLim();
   }finally{ S.loading=false; }
@@ -476,7 +495,7 @@ async function doMad(){
 
 /* ── REGEN ── */
 function doRegen(){
-  if(!S.unlocked && S.genCount >= 3 && !S.isMad){ openPinModal(); return; }
+  if(!S.unlocked && S.genCount >= 3 && !S.isMad){ showToast('⏳ Лимит исчерпан — попробуй завтра','err'); return; }
   if(S.isMad) doMad(); else generate(S.date, S.unlocked);
 }
 
@@ -486,7 +505,7 @@ function selDate(which){
   document.querySelectorAll('.d-tab').forEach(t=>t.classList.remove('on'));
   S.date = which==='today' ? new Date(_today) : new Date(_tmrw);
   $(which==='today'?'tToday':'tTomorrow').classList.add('on');
-  S.genCount=0;
+  S.genCount=0; saveState();
   generate(S.date);
 }
 function toggleCust(){
@@ -498,7 +517,7 @@ function applyCust(){
   S.date=new Date(v+'T00:00:00');
   $('custRow').classList.remove('show');
   document.querySelectorAll('.d-tab').forEach(t=>t.classList.remove('on'));
-  S.genCount=0; generate(S.date);
+  S.genCount=0; saveState(); generate(S.date);
 }
 
 /* ── UI ── */
@@ -562,7 +581,7 @@ function clearPin(){ ['p0','p1','p2'].forEach(id=>{ $(id).value=''; $(id).classL
 function checkPin(){
   const v=['p0','p1','p2'].map(id=>$(id).value).join('');
   if(v===PIN){
-    S.unlocked=true; closePinModal(); updateLim();
+    S.unlocked=true; saveState(); closePinModal(); updateLim();
     showToast('🔓 Разблокировано — перегенерируй сколько угодно!','suc');
     $('btnMad').disabled=false;
   }else{
@@ -582,7 +601,9 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') closePinModal(); }
 /* ── INIT ── */
 window.addEventListener('DOMContentLoaded',()=>{
   $('custDate').value=fmt(_tmrw);
-  generate(S.date);
+  updateLim();
+  if(S.genCount < 3 || S.unlocked) generate(S.date);
+  else{ $('ldrWrap').style.display='none'; $('resWrap').style.display='flex'; }
 });
 </script>
 </body>
