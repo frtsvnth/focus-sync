@@ -24,7 +24,7 @@ export default {
     try { body = await request.json(); }
     catch { return new Response('Invalid JSON', { status: 400 }); }
 
-    if (!body.model) body.model = 'openai/gpt-4o-mini';
+    // model задаётся клиентом, fallback не нужен
 
     const upstream = await fetch(CHAT_URL, {
       method: 'POST',
