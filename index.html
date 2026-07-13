@@ -234,6 +234,21 @@ button{cursor:pointer;font-family:inherit}
 const PROXY_URL = 'https://focus-sync.dmitriy-yukhin.workers.dev';
 const MODEL     = 'deepseek/deepseek-v4-flash';
 /* ── STATE ── */
+const fmt  = d => d.toISOString().slice(0,10);
+const LK = ()=>'focus-sync-'+fmt(_today);
+function loadState(){
+  try{
+    const raw=localStorage.getItem(LK());
+    if(!raw) return;
+    const st=JSON.parse(raw);
+    if(st.d===fmt(_today)){ S.genCount=st.c||0; S.madUsed=!!st.m; S.unlocked=!!st.u; }
+  }catch(e){}
+}
+function saveState(){
+  try{
+    localStorage.setItem(LK(),JSON.stringify({d:fmt(_today),c:S.genCount,m:S.madUsed,u:S.unlocked}));
+  }catch(e){}
+}
 const S = { genCount:0, madUsed:false, unlocked:false, isMad:false, loading:false, date:null };
 
 const _today = (()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })();
@@ -242,7 +257,6 @@ S.date = new Date(_tmrw);
 loadState();
 
 /* ── UTILS ── */
-const fmt  = d => d.toISOString().slice(0,10);
 const fmtRU= d => d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'});
 const $    = id => document.getElementById(id);
 
