@@ -226,7 +226,7 @@ button{cursor:pointer;font-family:inherit}
       <div class="lim-badge" id="limBadge"><span class="dot"></span><span id="limTx">Лимит: 0/3</span></div>
       <button class="unlock-link" onclick="openPinModal()">разблокировать</button>
     </div>
-    <div class="footer-t">Calend.ru · Wikipedia · RouterAI · ☕</div>
+    <div class="footer-t"> · Генератор повестки команды · ©fortyseventh · </div>
   </div>
 </div>
 
@@ -593,7 +593,7 @@ function showResult(text,mad=false){
 }
 function updateLim(){
   const b=$('limBadge'),t=$('limTx');
-  if(S.unlocked){ b.className='lim-badge on'; t.textContent='∞ Разблокировано'; }
+  if(S.unlocked){ b.className='lim-badge on'; t.textContent='Разблокировано'; }
   else{ b.className='lim-badge'; t.textContent='Лимит: '+S.genCount+'/3 на сегодня'; }
   $('btnMad').disabled=S.madUsed&&!S.unlocked;
 }
