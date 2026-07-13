@@ -233,22 +233,7 @@ button{cursor:pointer;font-family:inherit}
 /* ── CONFIG ── */
 const PROXY_URL = 'https://focus-sync.dmitriy-yukhin.workers.dev';
 const MODEL     = 'deepseek/deepseek-v4-flash';
-
 /* ── STATE ── */
-const LK = ()=>'focus-sync-'+fmt(_today);
-function loadState(){
-  try{
-    const raw=localStorage.getItem(LK());
-    if(!raw) return;
-    const st=JSON.parse(raw);
-    if(st.d===fmt(_today)){ S.genCount=st.c||0; S.madUsed=!!st.m; S.unlocked=!!st.u; }
-  }catch(e){}
-}
-function saveState(){
-  try{
-    localStorage.setItem(LK(),JSON.stringify({d:fmt(_today),c:S.genCount,m:S.madUsed,u:S.unlocked}));
-  }catch(e){}
-}
 const S = { genCount:0, madUsed:false, unlocked:false, isMad:false, loading:false, date:null };
 
 const _today = (()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })();
@@ -387,7 +372,7 @@ async function callAI(prompt){
   const r=await fetch(PROXY_URL,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:MODEL,messages:[{role:'user',content:prompt}],max_tokens:600,temperature:0.92})
+    body:JSON.stringify({model:MODEL,messages:[{role:'user',content:prompt}],max_tokens:2048,temperature:0.92})
   });
   if(!r.ok){
     const e=await r.json().catch(()=>({}));
