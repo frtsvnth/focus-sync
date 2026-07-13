@@ -376,7 +376,7 @@ async function fetchNager(d){
 async function allHolidays(d){
   const [nager,builtin]=await Promise.all([fetchNager(d),Promise.resolve(getBuiltin(d))]);
   const set=[...new Set([...nager,...builtin])];
-  if(set.length===0) set.push(getQuirky(d));
+  if(set.length===0) set.push(...QUIRKY);
   const q=getQuirky(d);
   if(!set.includes(q)) set.push(q);
   return set;
