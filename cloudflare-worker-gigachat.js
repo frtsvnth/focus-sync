@@ -25,7 +25,7 @@ async function fetchCalendHolidays(d) {
 
   // Parse holiday names from title spans
   const names = [];
-  const re = /<span class="title"><a href="[^"]*">([^<]+)<\/a><\/span>/g;
+  const re = /<span class="title"><a href="[^"]*">([^<]+)<\/a>\s*<\/span>/g;
   let match;
   while ((match = re.exec(block)) !== null) {
     const name = match[1].trim();
