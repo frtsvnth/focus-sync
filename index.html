@@ -431,7 +431,7 @@ async function generate(d, force=false){
     updateLim();
   }catch(e){
     const hs=getBuiltin(d);
-    const fb=hs.length?hs[Math.floor(Math.random()*hs.length)]:getQuirky(d);
+    const fb=hs.length?hs[Math.floor(Math.random()*hs.length)]:QUIRKY[Math.floor(Math.random()*QUIRKY.length)];
     if(!force) S.genCount++;
     saveState();
     showResult('📆 '+fmtRU(d)+' '+fb,false);
