@@ -250,7 +250,7 @@ function saveState(){
     localStorage.setItem(LK(),JSON.stringify({d:fmt(_today),c:S.genCount,m:S.madUsed,u:S.unlocked}));
   }catch(e){}
 }
-const S = { genCount:0, madUsed:false, unlocked:false, isMad:false, loading:false, date:null };
+const S = { genCount:0, madUsed:false, unlocked:false, isMad:false, loading:false, date:null, usedNames:[] };
 
 const _today = (()=>{ const d=new Date(); d.setHours(0,0,0,0); return d; })();
 const _tmrw  = (()=>{ const d=new Date(_today); d.setDate(d.getDate()+1); return d; })();
@@ -463,12 +463,15 @@ async function generate(d, force=false){
 
 Выбери из списка одно — самое интересное, необычное или смешное.
 Используй эмодзи из списка (не добавляй новые).
-Пример правильного ответа: 📆 ${ds} День числа Пи и бесконечных задач`;
+Пример правильного ответа: 📆 ${ds} День числа Пи и бесконечных задач${S.usedNames.length ? '\n\nУже были предложены:\n• ' + S.usedNames.join('\n• ') + '\n\nВыбери ДРУГОЕ название из списка, не повторяйся.' : ''}`;
     let res = await callAI(prompt);
     if(!res || !res.includes(ds)){
-      const idx=Math.floor(Math.random()*holidays.length);
-      res='📆 '+ds+' '+holidays[idx];
+      const available = holidays.filter(h=>!S.usedNames.includes(h));
+      const pool = available.length ? available : holidays;
+      res='📆 '+ds+' '+pool[Math.floor(Math.random()*pool.length)];
     }
+    const name = res.replace(/^📆\s*\d{2}\.\d{2}\s*/,'');
+    if(name) S.usedNames.push(name);
     if(!force) S.genCount++;
     saveState();
     setKeyOk();
@@ -476,10 +479,14 @@ async function generate(d, force=false){
     updateLim();
   }catch(e){
     const hs=getBuiltin(d);
-    const fb=hs.length?hs[Math.floor(Math.random()*hs.length)]:QUIRKY[Math.floor(Math.random()*QUIRKY.length)];
+    const fbPool = hs.length ? hs : QUIRKY;
+    const availFb = fbPool.filter(h=>!S.usedNames.includes(h));
+    const fb = (availFb.length ? availFb : fbPool)[Math.floor(Math.random()*(availFb.length || fbPool.length))];
     if(!force) S.genCount++;
     saveState();
-    showResult('📆 '+fmtRU(d)+' '+fb,false);
+    const fallbackName = '📆 '+fmtRU(d)+' '+fb;
+    showResult(fallbackName,false);
+    S.usedNames.push(fb);
     updateLim();
     showToast('⚡ AI недоступен — локальный список','err');
   }finally{ S.loading=false; }
@@ -548,6 +555,9 @@ function doRegen(){
 function selDate(which){
   $('custRow').classList.remove('show');
   document.querySelectorAll('.d-tab').forEach(t=>t.classList.remove('on'));
+  S.date = which==='today' ? new Date(_today) : new Date(_tmrw);
+  $(which==='today'?'tToday':'tTomorrow').classList.add('on');
+  S.usedNames=[];
   generate(S.date);
 }
 function toggleCust(){
@@ -559,7 +569,8 @@ function applyCust(){
   S.date=new Date(v+'T00:00:00');
   $('custRow').classList.remove('show');
   document.querySelectorAll('.d-tab').forEach(t=>t.classList.remove('on'));
-  S.genCount=0; saveState(); generate(S.date);
+  S.usedNames=[];
+  generate(S.date);
 }
 
 /* ── UI ── */
