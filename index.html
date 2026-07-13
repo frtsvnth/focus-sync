@@ -226,7 +226,7 @@ button{cursor:pointer;font-family:inherit}
       <div class="lim-badge" id="limBadge"><span class="dot"></span><span id="limTx">Лимит: 0/3</span></div>
       <button class="unlock-link" onclick="openPinModal()">разблокировать</button>
     </div>
-    <div class="footer-t">Праздники · RouterAI · ☕</div>
+    <div class="footer-t">Wikipedia · RouterAI · ☕</div>
   </div>
 </div>
 
@@ -390,20 +390,28 @@ function getQuirky(d){
   return QUIRKY[seed % QUIRKY.length];
 }
 
-async function fetchNager(d){
+async function fetchHolidays(d){
   try{
-    const r=await fetch(`https://date.nager.at/api/v3/PublicHolidays/${d.getFullYear()}/RU`,
-      {signal:AbortSignal.timeout(3000)});
+    const m = d.getMonth()+1;
+    const day = d.getDate();
+    const r = await fetch(`https://api.wikimedia.org/feed/v1/wikipedia/ru/onthisday/holidays/${m}/${day}`,
+      {signal:AbortSignal.timeout(5000)});
     if(!r.ok) return [];
-    const all=await r.json();
-    const ds=fmt(d);
-    return all.filter(h=>h.date===ds).map(h=>h.localName||h.name);
+    const data = await r.json();
+    const raw = (data.holidays||[]).map(h=>h.text||'').filter(Boolean);
+    const cleaned = [];
+    for(const s of raw){
+      if(/^(Католические|Православные):/.test(s)) continue;
+      let t = s.replace(/;?\s*$/, '').trim();
+      if(t.length > 3 && t.length < 120) cleaned.push(t);
+    }
+    return [...new Set(cleaned)];
   }catch{return[];}
 }
 
 async function allHolidays(d){
-  const [nager,builtin]=await Promise.all([fetchNager(d),Promise.resolve(getBuiltin(d))]);
-  const set=[...new Set([...nager,...builtin])];
+  const [api,builtin]=await Promise.all([fetchHolidays(d),Promise.resolve(getBuiltin(d))]);
+  const set=[...new Set([...api,...builtin])];
   if(set.length===0) set.push(...QUIRKY);
   const q=getQuirky(d);
   if(!set.includes(q)) set.push(q);
