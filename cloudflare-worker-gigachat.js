@@ -1,34 +1,4 @@
-const OAUTH_URL = 'https://ngw.devices.sberbank.ru:9443/api/v2/oauth';
-const CHAT_URL  = 'https://gigachat.devices.sberbank.ru/api/v1/chat/completions';
-const SCOPE     = 'GIGACHAT_API_PERS';
-
-let cachedToken = null;
-let tokenExpiresAt = 0;
-
-async function getAccessToken(authKey) {
-  if (cachedToken && Date.now() < tokenExpiresAt - 60_000) {
-    return cachedToken;
-  }
-  const rqUid = crypto.randomUUID();
-  const resp = await fetch(OAUTH_URL, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-      'Accept': 'application/json',
-      'RqUID': rqUid,
-      'Authorization': `Basic ${authKey}`,
-    },
-    body: 'scope=' + SCOPE,
-  });
-  if (!resp.ok) {
-    const t = await resp.text();
-    throw new Error(`OAuth failed ${resp.status}: ${t}`);
-  }
-  const data = await resp.json();
-  cachedToken = data.access_token;
-  tokenExpiresAt = data.expires_at ? data.expires_at * 1000 : Date.now() + 29 * 60 * 1000;
-  return cachedToken;
-}
+const CHAT_URL = 'https://routerai.ru/api/v1/chat/completions';
 
 function corsHeaders(origin) {
   return {
@@ -54,23 +24,14 @@ export default {
     try { body = await request.json(); }
     catch { return new Response('Invalid JSON', { status: 400 }); }
 
-    let token;
-    try { token = await getAccessToken(env.GIGACHAT_AUTH_KEY); }
-    catch (e) {
-      return new Response(JSON.stringify({ error: { message: e.message } }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders(origin) },
-      });
-    }
-
-    if (!body.model) body.model = 'GigaChat';
+    if (!body.model) body.model = 'openai/gpt-4o-mini';
 
     const upstream = await fetch(CHAT_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`,
+        'Authorization': 'Bearer ' + env.ROUTERAI_KEY,
       },
       body: JSON.stringify(body),
     });

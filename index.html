@@ -225,15 +225,14 @@ button{cursor:pointer;font-family:inherit}
       <div class="lim-badge" id="limBadge"><span class="dot"></span><span id="limTx">Лимит: 0/3</span></div>
       <button class="unlock-link" onclick="openPinModal()">разблокировать</button>
     </div>
-    <div class="footer-t">Праздники · GigaChat API · ☕</div>
+    <div class="footer-t">Праздники · RouterAI · ☕</div>
   </div>
 </div>
 
 <script>
 /* ── CONFIG ── */
-// ⚠️ Замени на URL своего Cloudflare Worker после деплоя
 const PROXY_URL = 'https://focus-sync.dmitriy-yukhin.workers.dev';
-const MODEL     = 'GigaChat';
+const MODEL     = 'google/gemini-3.1-flash';
 
 /* ── STATE ── */
 const S = { genCount:0, madUsed:false, unlocked:false, isMad:false, loading:false, date:null };
