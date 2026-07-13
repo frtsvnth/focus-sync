@@ -372,7 +372,7 @@ async function callAI(prompt){
   const r=await fetch(PROXY_URL,{
     method:'POST',
     headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:MODEL,messages:[{role:'user',content:prompt}],max_tokens:300,temperature:0.92})
+    body:JSON.stringify({model:MODEL,messages:[{role:'user',content:prompt}],max_tokens:600,temperature:0.92})
   });
   if(!r.ok){
     const e=await r.json().catch(()=>({}));
@@ -477,7 +477,7 @@ async function doMad(){
 /* ── REGEN ── */
 function doRegen(){
   if(!S.unlocked && S.genCount >= 3 && !S.isMad){ openPinModal(); return; }
-  if(S.isMad) doMad(); else generate(S.date,true);
+  if(S.isMad) doMad(); else generate(S.date, S.unlocked);
 }
 
 /* ── DATE SELECT ── */
