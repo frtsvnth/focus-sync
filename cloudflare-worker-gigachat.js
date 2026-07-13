@@ -17,10 +17,17 @@ async function fetchCalendHolidays(d) {
   });
   if (!resp.ok) return [];
   const html = await resp.text();
+
+  // Extract the holidays block
+  const blockMatch = html.match(/class="block holidays">([\s\S]*?)<\/ul>\s*<\/div>/);
+  if (!blockMatch) return [];
+  const block = blockMatch[1];
+
+  // Parse holiday names from title spans
   const names = [];
   const re = /<span class="title"><a href="[^"]*">([^<]+)<\/a><\/span>/g;
   let match;
-  while ((match = re.exec(html)) !== null) {
+  while ((match = re.exec(block)) !== null) {
     const name = match[1].trim();
     if (name && name.length > 3 && name.length < 100) names.push(name);
   }
