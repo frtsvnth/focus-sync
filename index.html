@@ -226,7 +226,7 @@ button{cursor:pointer;font-family:inherit}
       <div class="lim-badge" id="limBadge"><span class="dot"></span><span id="limTx">Лимит: 0/3</span></div>
       <button class="unlock-link" onclick="openPinModal()">разблокировать</button>
     </div>
-    <div class="footer-t">Wikipedia · RouterAI · ☕</div>
+    <div class="footer-t">Calend.ru · Wikipedia · RouterAI · ☕</div>
   </div>
 </div>
 
@@ -390,6 +390,15 @@ function getQuirky(d){
   return QUIRKY[seed % QUIRKY.length];
 }
 
+async function fetchCalend(d){
+  try{
+    const r = await fetch(`${PROXY_URL}?holiday&d=${fmt(d)}`,
+      {signal:AbortSignal.timeout(5000)});
+    if(!r.ok) return [];
+    return await r.json();
+  }catch{return[];}
+}
+
 async function fetchHolidays(d){
   try{
     const m = d.getMonth()+1;
@@ -410,8 +419,8 @@ async function fetchHolidays(d){
 }
 
 async function allHolidays(d){
-  const [api,builtin]=await Promise.all([fetchHolidays(d),Promise.resolve(getBuiltin(d))]);
-  const set=[...new Set([...api,...builtin])];
+  const [wiki,calend,builtin]=await Promise.all([fetchHolidays(d),fetchCalend(d),Promise.resolve(getBuiltin(d))]);
+  const set=[...new Set([...wiki,...calend,...builtin])];
   if(set.length===0) set.push(...QUIRKY);
   const q=getQuirky(d);
   if(!set.includes(q)) set.push(q);
